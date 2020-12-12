@@ -1,13 +1,11 @@
 import numpy as np
 import pygame as pg
 from random import randint
+import colors
+
 
 pg.init()
 pg.font.init()
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
 
 SCREEN_SIZE = (800, 600)
 
@@ -119,7 +117,7 @@ class Cannon(GameObject):
     """
 
     def __init__(self, coord: Coord = Coord(30, SCREEN_SIZE[1] // 2), angle=0,
-                 max_pow=50, min_pow=10, color=RED):
+                 max_pow=50, min_pow=10, color=colors.RED):
         """
         Constructor method. Sets coordinate, direction,
         minimum and maximum power and color of the gun.
@@ -219,6 +217,9 @@ class Target(GameObject):
         """
         pg.draw.circle(screen, self.color,
                        (self.coord.x, self.coord.y), self.rad)
+        pg.draw.circle(screen,
+                       (self.color[0]//2, self.color[1]//2, self.color[2]//2),
+                       (self.coord.x, self.coord.y), self.rad//2)
 
 
 class MovingTarget(Target):
@@ -247,9 +248,9 @@ class ScoreTable:
 
     def draw(self, screen):
         score_surf = [
-            self.font.render("Destroyed: {}".format(self.t_destr), True, WHITE),
-            self.font.render("Balls used: {}".format(self.b_used), True, WHITE),
-            self.font.render("Total: {}".format(self.score()), True, RED),
+            self.font.render("Destroyed: {}".format(self.t_destr), True, colors.WHITE),
+            self.font.render("Balls used: {}".format(self.b_used), True, colors.WHITE),
+            self.font.render("Total: {}".format(self.score()), True, colors.RED),
         ]
         for i in range(3):
             screen.blit(score_surf[i], [10, 10 + 30 * i])
@@ -272,9 +273,10 @@ class Manager:
         """
         Adds new targets.
         """
+        self.balls = []
         for i in range(self.n_targets):
             self.targets.append(Target())
-        for i in range(self.n_targets):
+        for i in range(self.n_targets + 2):
             self.targets.append(MovingTarget())
 
     def process(self, events, screen):
@@ -291,7 +293,7 @@ class Manager:
         self.collide()
         self.draw(screen)
 
-        if len(self.targets) == 0 and len(self.balls) == 0:
+        if len(self.targets) == 0:
             self.new_mission()
 
         return done
@@ -371,7 +373,7 @@ mgr = Manager(n_targets=3)
 
 while not terminate_program:
     clock.tick(15)
-    game_screen.fill(BLACK)
+    game_screen.fill(colors.BLACK)
 
     terminate_program = mgr.process(pg.event.get(), game_screen)
 
