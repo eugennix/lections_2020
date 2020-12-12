@@ -292,13 +292,13 @@ class Manager:
         '''
         dead_balls = []
         for i, ball in enumerate(self.balls):
-            ball.shift_position(grav=2)
+            ball.move(grav=2)
             if not ball.is_alive:
                 dead_balls.append(i)
         for i in reversed(dead_balls):
             self.balls.pop(i)
         for i, target in enumerate(self.targets):
-            target.shift_position()
+            target.move()
         self.gun.gain()
 
     def collide(self):
