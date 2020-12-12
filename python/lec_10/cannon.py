@@ -1,11 +1,9 @@
+from random import randint
+
+import colors
 import numpy as np
 import pygame as pg
-from random import randint
-import colors
 
-
-pg.init()
-pg.font.init()
 
 SCREEN_SIZE = (800, 600)
 
@@ -15,20 +13,12 @@ def rand_color():
 
 
 class Coord:
-    """
-    For coordinates
-    """
-
     def __init__(self, x: int = 0, y: int = 0):
         self.x = x
         self.y = y
 
 
 class Velocity:
-    """
-    For velocity
-    """
-
     def __init__(self, dx: int = 0, dy: int = 0):
         self.dx = dx
         self.dy = dy
@@ -55,8 +45,8 @@ class GameObject:
         Changes the ball's velocity due to gravitational force.
         """
         self.velocity.dy += gravity
-        self.coord.x += self.velocity.dx
-        self.coord.y += self.velocity.dy
+        self.coord.x += self.velocity.dx * time
+        self.coord.y += self.velocity.dy * time
         self.check_corners()
 
     def check_corners(self, refl_ort=0.8, refl_par=0.9):
@@ -93,7 +83,7 @@ class Shell(GameObject):
                  Velocity = Velocity(), rad=20, color=None):
         super().__init__(coord, velocity, rad, color)
 
-    def move(self, time=1, gravity=0):
+    def move(self, time=1, gravity=5):
         """
         Moves the ball according to it's velocity and time step.
         Changes the ball's velocity due to gravitational force.
@@ -196,7 +186,7 @@ class Target(GameObject):
         Constructor method. Sets coordinate, color and radius of the target.
         """
         if rad is None:
-            rad = randint(20, 50)
+            rad = randint(20, 40)
         if coord is None:
             coord = Coord(randint(rad, SCREEN_SIZE[0] - rad),
                           randint(rad, SCREEN_SIZE[1] - rad))
@@ -235,25 +225,25 @@ class ScoreTable:
     Score table class.
     """
 
-    def __init__(self, t_destr=0, b_used=0):
-        self.t_destr = t_destr
-        self.b_used = b_used
-        self.font = pg.font.SysFont("dejavusansmono", 25)
+    def __init__(self, targets_destroyed=0, shell_used=0):
+        self.targets_destroyed = targets_destroyed
+        self.shell_used = shell_used
+        self.font = pg.font.SysFont("dejavusansmono", 15)
 
     def score(self):
         """
         Score calculation method.
         """
-        return self.t_destr - self.b_used
+        return self.targets_destroyed - self.shell_used
 
     def draw(self, screen):
         score_surf = [
-            self.font.render("Destroyed: {}".format(self.t_destr), True, colors.WHITE),
-            self.font.render("Balls used: {}".format(self.b_used), True, colors.WHITE),
-            self.font.render("Total: {}".format(self.score()), True, colors.RED),
+            self.font.render(f"Destroyed: {self.targets_destroyed}", True, colors.WHITE),
+            self.font.render(f"Balls used: {self.shell_used}", True, colors.WHITE),
+            self.font.render(f"Total: {self.score()}", True, colors.RED),
         ]
         for i in range(3):
-            screen.blit(score_surf[i], [10, 10 + 30 * i])
+            screen.blit(score_surf[i], [10, 10 + 20 * i])
 
 
 class Manager:
@@ -317,7 +307,7 @@ class Manager:
             elif event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:
                     self.balls.append(self.gun.strike())
-                    self.score_t.b_used += 1
+                    self.score_t.shell_used += 1
         return need_exit
 
     def draw(self, screen):
@@ -359,10 +349,12 @@ class Manager:
                     targets_c.append(j)
         targets_c.sort()
         for j in reversed(targets_c):
-            self.score_t.t_destr += 1
+            self.score_t.targets_destroyed += 1
             self.targets.pop(j)
 
 
+pg.init()
+pg.font.init()
 game_screen = pg.display.set_mode(SCREEN_SIZE)
 pg.display.set_caption("The gun of Khiryanov")
 
