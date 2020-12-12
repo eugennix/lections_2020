@@ -30,13 +30,15 @@ class GameObject:
         self.is_alive = True
 
 
-
-class Shell(GameObject):
-    '''
-    The ball class. Creates a ball, controls it's movement and implement it's rendering.
-    '''
-    def __init__(self, coord, velocity, rad=20, color=None):
-        super().__init__(coord, velocity, rad, color)
+    def move(self, time=1, grav=0):
+        '''
+        Moves the ball according to it's velocity and time step.
+        Changes the ball's velocity due to gravitational force.
+        '''
+        self.vel[1] += grav
+        for i in range(2):
+            self.coord[i] += time * self.vel[i]
+        self.check_corners()
 
 
     def check_corners(self, refl_ort=0.8, refl_par=0.9):
@@ -52,6 +54,15 @@ class Shell(GameObject):
                 self.coord[i] = SCREEN_SIZE[i] - self.rad
                 self.vel[i] = -int(self.vel[i] * refl_ort)
                 self.vel[1-i] = int(self.vel[1-i] * refl_par)
+
+
+class Shell(GameObject):
+    '''
+    The ball class. Creates a ball, controls it's movement and implement it's rendering.
+    '''
+    def __init__(self, coord, velocity, rad=20, color=None):
+        super().__init__(coord, velocity, rad, color)
+
 
     def move(self, time=1, grav=0):
         '''
@@ -80,7 +91,7 @@ class Cannon(GameObject):
         '''
         Constructor method. Sets coordinate, direction, minimum and maximum power and color of the gun.
         '''
-        super().__init__(coord, 0, 0, color)
+        super().__init__(coord, None, None, color)
         self.angle = angle
         self.max_pow = max_pow
         self.min_pow = min_pow
@@ -149,7 +160,9 @@ class Target(GameObject):
         '''
         if coord == None:
             coord = [randint(rad, SCREEN_SIZE[0] - rad), randint(rad, SCREEN_SIZE[1] - rad)]
-        super().__init__(coord, 0, rad, color)
+        if velocity == None:
+            velocity = [0, 0]
+        super().__init__(coord, velocity, rad, color)
 
 
     def check_collision(self, ball):
@@ -166,24 +179,15 @@ class Target(GameObject):
         '''
         pg.draw.circle(screen, self.color, self.coord, self.rad)
 
-    def move(self):
-        """
-        This type of target can't move at all.
-        :return: None
-        """
-        pass
 
 
 class MovingTarget(Target):
     def __init__(self, coord=None, color=None, rad=30):
         self.vx = randint(-2, +2)
         self.vy = randint(-2, +2)
-        velocity = (self.vx, self.vy)
+        velocity = [self.vx, self.vy]
         super().__init__(coord, velocity, rad, color)
 
-    def move(self):
-        self.coord[0] += self.vx
-        self.coord[1] += self.vy
 
 
 class ScoreTable:
