@@ -84,7 +84,7 @@ class Cannon(GameObject):
         self.color = color
         self.active = False
         self.pow = min_pow
-    
+
     def activate(self):
         '''
         Activates gun's charge.
@@ -108,7 +108,7 @@ class Cannon(GameObject):
         self.pow = self.min_pow
         self.active = False
         return ball
-        
+
     def set_angle(self, target_pos):
         '''
         Sets gun's direction to target position.
@@ -243,7 +243,7 @@ class Manager:
         if pg.mouse.get_focused():
             mouse_pos = pg.mouse.get_pos()
             self.gun.set_angle(mouse_pos)
-        
+
         self.move()
         self.collide()
         self.draw(screen)
@@ -292,13 +292,13 @@ class Manager:
         '''
         dead_balls = []
         for i, ball in enumerate(self.balls):
-            ball.move(grav=2)
+            ball.shift_position(grav=2)
             if not ball.is_alive:
                 dead_balls.append(i)
         for i in reversed(dead_balls):
             self.balls.pop(i)
         for i, target in enumerate(self.targets):
-            target.move()
+            target.shift_position()
         self.gun.gain()
 
     def collide(self):
