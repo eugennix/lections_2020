@@ -1,6 +1,6 @@
 import numpy as np
 import pygame as pg
-from random import randint, gauss
+from random import randint
 
 pg.init()
 pg.font.init()
@@ -13,28 +13,31 @@ SCREEN_SIZE = (800, 600)
 
 
 def rand_color():
-    return (randint(0, 255), randint(0, 255), randint(0, 255))
+    return randint(0, 255), randint(0, 255), randint(0, 255)
 
 
 class GameObject:
-    pass
+    """
+    Common class for all screen objects
+    """
+    def __init__(self, coord, velocity, radius, color=None):
+        self.coord = coord
+        self.vel = velocity
+        if color == None:
+            color = rand_color()
+        self.color = color
+        self.rad = radius
+        self.is_alive = True
+
 
 
 class Shell(GameObject):
     '''
     The ball class. Creates a ball, controls it's movement and implement it's rendering.
     '''
-    def __init__(self, coord, vel, rad=20, color=None):
-        '''
-        Constructor method. Initializes ball's parameters and initial values.
-        '''
-        self.coord = coord
-        self.vel = vel
-        if color == None:
-            color = rand_color()
-        self.color = color
-        self.rad = rad
-        self.is_alive = True
+    def __init__(self, coord, velocity, rad=20, color=None):
+        super().__init__(coord, velocity, rad, color)
+
 
     def check_corners(self, refl_ort=0.8, refl_par=0.9):
         '''
@@ -77,14 +80,13 @@ class Cannon(GameObject):
         '''
         Constructor method. Sets coordinate, direction, minimum and maximum power and color of the gun.
         '''
-        self.coord = coord
+        super().__init__(coord, 0, 0, color)
         self.angle = angle
         self.max_pow = max_pow
         self.min_pow = min_pow
-        self.color = color
         self.active = False
         self.pow = min_pow
-    
+
     def activate(self):
         '''
         Activates gun's charge.
@@ -108,7 +110,7 @@ class Cannon(GameObject):
         self.pow = self.min_pow
         self.active = False
         return ball
-        
+
     def set_angle(self, target_pos):
         '''
         Sets gun's direction to target position.
@@ -141,18 +143,14 @@ class Target(GameObject):
     '''
     Target class. Creates target, manages it's rendering and collision with a ball event.
     '''
-    def __init__(self, coord=None, color=None, rad=30):
+    def __init__(self, coord=None, velocity = None, rad=30, color=None):
         '''
         Constructor method. Sets coordinate, color and radius of the target.
         '''
         if coord == None:
             coord = [randint(rad, SCREEN_SIZE[0] - rad), randint(rad, SCREEN_SIZE[1] - rad)]
-        self.coord = coord
-        self.rad = rad
+        super().__init__(coord, 0, rad, color)
 
-        if color == None:
-            color = rand_color()
-        self.color = color
 
     def check_collision(self, ball):
         '''
@@ -178,9 +176,10 @@ class Target(GameObject):
 
 class MovingTarget(Target):
     def __init__(self, coord=None, color=None, rad=30):
-        super().__init__(coord, color, rad)
         self.vx = randint(-2, +2)
         self.vy = randint(-2, +2)
+        velocity = (self.vx, self.vy)
+        super().__init__(coord, velocity, rad, color)
 
     def move(self):
         self.coord[0] += self.vx
@@ -243,7 +242,7 @@ class Manager:
         if pg.mouse.get_focused():
             mouse_pos = pg.mouse.get_pos()
             self.gun.set_angle(mouse_pos)
-        
+
         self.move()
         self.collide()
         self.draw(screen)
