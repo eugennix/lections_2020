@@ -292,7 +292,7 @@ class Manager:
         '''
         dead_balls = []
         for i, ball in enumerate(self.balls):
-            ball.move(grav=2)
+            ball.move(gravity=2)
             if not ball.is_alive:
                 dead_balls.append(i)
         for i in reversed(dead_balls):
