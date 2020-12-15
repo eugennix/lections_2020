@@ -5,9 +5,6 @@ import numpy as np
 import pygame as pg
 
 
-SCREEN_SIZE = (800, 600)
-
-
 def rand_color():
     return randint(0, 255), randint(0, 255), randint(0, 255)
 
@@ -23,6 +20,7 @@ class Velocity:
         self.dx = dx
         self.dy = dy
 
+SCREEN_SIZE = Coord(800, 600)
 
 class GameObject:
     """
@@ -58,8 +56,8 @@ class GameObject:
             self.coord.x = self.rad
             self.velocity.dx = -int(self.velocity.dx * refl_ort)
             self.velocity.dy = int(self.velocity.dy * refl_par)
-        elif self.coord.x > SCREEN_SIZE[0] - self.rad:
-            self.coord.x = SCREEN_SIZE[0] - self.rad
+        elif self.coord.x > SCREEN_SIZE.x - self.rad:
+            self.coord.x = SCREEN_SIZE.x - self.rad
             self.velocity.dx = -int(self.velocity.dx * refl_ort)
             self.velocity.dy = int(self.velocity.dy * refl_par)
 
@@ -67,8 +65,8 @@ class GameObject:
             self.coord.y = self.rad
             self.velocity.dy = -int(self.velocity.dy * refl_ort)
             self.velocity.dx = int(self.velocity.dx * refl_par)
-        elif self.coord.y > SCREEN_SIZE[1] - self.rad:
-            self.coord.y = SCREEN_SIZE[1] - self.rad
+        elif self.coord.y > SCREEN_SIZE.y - self.rad:
+            self.coord.y = SCREEN_SIZE.y - self.rad
             self.velocity.dy = -int(self.velocity.dy * refl_ort)
             self.velocity.dx = int(self.velocity.dx * refl_par)
 
@@ -90,7 +88,7 @@ class Shell(GameObject):
         """
         super().move(time, gravity)
         if self.velocity.dx ** 2 + self.velocity.dy ** 2 < 2 ** 2 \
-                and self.coord.y > SCREEN_SIZE[1] - 2 * self.rad:
+                and self.coord.y > SCREEN_SIZE.y - 2 * self.rad:
             self.is_alive = False
 
     def draw(self, screen):
@@ -106,7 +104,7 @@ class Cannon(GameObject):
     Cannon class. Manages it's rendering, movement and striking.
     """
 
-    def __init__(self, coord: Coord = Coord(30, SCREEN_SIZE[1] // 2), angle=0,
+    def __init__(self, coord: Coord = Coord(30, SCREEN_SIZE.y // 2), angle=0,
                  max_pow=50, min_pow=10, color=colors.RED):
         """
         Constructor method. Sets coordinate, direction,
@@ -156,7 +154,7 @@ class Cannon(GameObject):
         Changes vertical position of the gun.
         :param inc: смещение пушки по вертикали
         """
-        if (self.coord.y > 30 or inc > 0) and (self.coord.y < SCREEN_SIZE[1] - 30 or inc < 0):
+        if (self.coord.y > 30 or inc > 0) and (self.coord.y < SCREEN_SIZE.y - 30 or inc < 0):
             self.coord.y += inc
 
     def draw(self, screen):
@@ -174,6 +172,7 @@ class Cannon(GameObject):
         pg.draw.polygon(screen, self.color, gun_shape)
 
 
+
 class Target(GameObject):
     """
     Target class. Creates target,
@@ -188,11 +187,11 @@ class Target(GameObject):
         if rad is None:
             rad = randint(20, 40)
         if coord is None:
-            coord = Coord(randint(rad, SCREEN_SIZE[0] - rad),
-                          randint(rad, SCREEN_SIZE[1] - rad))
+            coord = Coord(randint(rad, SCREEN_SIZE.x - rad),
+                          randint(rad, SCREEN_SIZE.y - rad))
         super().__init__(coord, velocity, rad, color)
 
-    def check_collision(self, ball):
+    def check_collision_w_shells(self, ball):
         """
         Checks whether the ball bumps into target.
         """
@@ -266,8 +265,9 @@ class Manager:
         self.balls = []
         for i in range(self.n_targets):
             self.targets.append(Target())
-        for i in range(self.n_targets + 2):
+        for i in range(self.n_targets + 1):
             self.targets.append(MovingTarget())
+
 
     def process(self, events, screen):
         """
@@ -344,7 +344,7 @@ class Manager:
         targets_c = []
         for i, ball in enumerate(self.balls):
             for j, target in enumerate(self.targets):
-                if target.check_collision(ball):
+                if target.check_collision_w_shells(ball):
                     collisions.append([i, j])
                     targets_c.append(j)
         targets_c.sort()
@@ -355,7 +355,7 @@ class Manager:
 
 pg.init()
 pg.font.init()
-game_screen = pg.display.set_mode(SCREEN_SIZE)
+game_screen = pg.display.set_mode((SCREEN_SIZE.x, SCREEN_SIZE.y))
 pg.display.set_caption("The gun of Khiryanov")
 
 terminate_program = False
